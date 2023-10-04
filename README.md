@@ -1,6 +1,6 @@
 # Scope and Use-Case Scenarios
 
-This plugin is my personal necessity to be able to use obsidian.
+This plugin is my personal necessity to be able to use Obsidian.
 
 I am a Vim user.
 
@@ -24,10 +24,10 @@ For all other cases, e.g. writing text in insert mode, tweaking Obsidian setting
 the layout is switched back to the user's preferred layout.
 
 This aims to provide as seamless an experience as possible.
-Unfortunately, there's no way to make keybindings like f\<character> or r\<character> behave properly. For bindings like this, the \<character> part should not be remapped to QWERTY. Because this plugin doesn't touch CodeMirror's source code, we have no way of knowing when such a character is read, so we cannot simply switch back.
+Unfortunately, there's no way to make keybindings like `f<character>` or `r<character>` behave properly. For bindings like this, the `<character>` part should not be remapped to QWERTY. Because this plugin doesn't touch CodeMirror's source code, we have no way of knowing when such a character is read, so we cannot simply switch back.
 
 # Future Prospect
 
-Regarding mappings like f\<character> and r\<character>, I will check to see if CodeMirror provides any way of listening in on the current character buffer. If so, then we could detect these keybindings and switch the keyboard before the user presses the character that is not to be remapped.
+Regarding mappings like `f<character>` and `r<character>`, I will check to see if CodeMirror provides any way of listening in on the current character buffer. If so, then we could detect these keybindings and switch the keyboard before the user presses the character that is not to be remapped.
 
-Still though, it's apparent that this project is more of a hack than a fix. If time allows, I might look into baking langmap directly into CodeMirror through a pull request. Should that be merged then Obsidian and other apps that rely on CodeMirror like Joplin will get Vim's langmap out of the box (or rather with minimal plugin writing requirement, so that feature can actually be accessed through a pseudo .vimrc file).
+Still though, it's apparent that this project is more of a hack than a fix. If time allows, I might look into baking langmap directly into CodeMirror through a pull request. Should that be merged then Obsidian and other apps that rely on CodeMirror like Joplin will get Vim's langmap out of the box (or rather with minimal plugin writing requirement, so that feature can actually be accessed through a pseudo `.vimrc` file).
