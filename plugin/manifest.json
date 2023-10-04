@@ -1,0 +1,11 @@
+{
+	"id": "obsidian-vim-langmap",
+	"name": "Vim Langmap Emulation",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Emulates a Vim langmap by switching the actual keyboard layout based on the current Vim mode and window focus. Currently only compatible with Windows.",
+	"author": "Kacper Darowski",
+	"authorUrl": "https://opisek.net",
+	"fundingUrl": "https://obsidian.md/pricing",
+	"isDesktopOnly": true
+}
