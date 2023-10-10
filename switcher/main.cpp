@@ -1,10 +1,29 @@
 #include <Windows.h>
 #include <WinUser.h>
 #include <wchar.h>
+#include <iostream>
+
+wchar_t* getExecutablePath(const wchar_t* filename) {
+	wchar_t parentPath[MAX_PATH + 1];
+	GetModuleFileNameW(NULL, parentPath, MAX_PATH);
+	wchar_t* ptr = wcsrchr(parentPath, '\\');
+	*ptr = '\0';
+	size_t parentPathLength = ptr - parentPath;
+	wchar_t escapedParentPath[parentPathLength * 2 + 1];
+	int j = 0;
+	for (int i = 0; parentPath[i] != '\0'; ++i) {
+		if (parentPath[i] == '\\') escapedParentPath[j++] = '\\';
+		escapedParentPath[j++] = parentPath[i];
+	}
+	escapedParentPath[j] = '\0';
+	size_t executablePathLength = j + wcslen(filename) + 5;
+	wchar_t* executablePath = (wchar_t*)malloc(executablePathLength * sizeof(wchar_t));
+	swprintf_s(executablePath, executablePathLength, L"\"%s\\\\%s\"", escapedParentPath, filename);
+	return executablePath;
+}
 
 int main(int argc, char** argv) {
 	// Get current layout
-
 	HWND hwnd = GetForegroundWindow();
 	DWORD threadID = GetWindowThreadProcessId(hwnd, NULL);
 	HKL currentLayoutHKL = GetKeyboardLayout(threadID);
@@ -24,16 +43,16 @@ int main(int argc, char** argv) {
 
 	if (offset == 0) return 0;
 
-	wchar_t parentPath[MAX_PATH + 1];
-	GetModuleFileNameW(NULL, parentPath, MAX_PATH);
-	wchar_t* ptr = wcsrchr(parentPath, '\\');
-	*ptr = '\0';
-	wchar_t executablePath[MAX_PATH + 100];
-	if (offset < 0) swprintf_s(executablePath, L"%s\\PreviousLayout.exe", parentPath);
-	else swprintf_s(executablePath, L"%s\\NextLayout.exe", parentPath);
-
-	if (offset < 0) offset *= -1;
+	wchar_t* executablePath;
+	if (offset > 0) {
+		executablePath = getExecutablePath(L"NextLayout.exe");
+	} else {
+		executablePath = getExecutablePath(L"PreviousLayout.exe");
+		offset *= -1;
+	}
+	std::wcout << executablePath << std::endl;
 	for (int i = 0; i < offset; ++i) _wsystem(executablePath);
+	free(executablePath);
 
 	return 0;
 }

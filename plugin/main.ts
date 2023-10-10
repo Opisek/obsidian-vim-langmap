@@ -1,9 +1,6 @@
 import { App, FileSystemAdapter, MarkdownView, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { execFile } from 'child_process';
 import { join } from 'path';
-
-const pexec = promisify(exec);
 
 interface VimLangmapPluginSettings {
 	typingKeyboard: number;
@@ -26,9 +23,9 @@ export default class VimLangmapPlugin extends Plugin {
 		const adapter = this.app.vault.adapter;
 		let switcherPath = "";
 		if (adapter instanceof FileSystemAdapter) {
-				switcherPath = join(adapter.getBasePath(), ".obsidian", "plugins", "obsidian-vim-langmap", "KeyboardSwitcher.exe");
+			const basePath = adapter.getBasePath(); 
+			switcherPath = join(basePath, ".obsidian", "plugins", "obsidian-vim-langmap", "KeyboardSwitcher.exe");
 		}
-		console.log("switcherPath: " + switcherPath);
 
 		await this.loadSettings();
 
@@ -39,7 +36,6 @@ export default class VimLangmapPlugin extends Plugin {
 				changeToQwerty(this.settings, switcherPath);
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const cmEditor = (this.app.workspace.getActiveViewOfType(MarkdownView) as any).sourceMode?.cmEditor?.cm?.cm;
-				console.log(cmEditor);
 				cmEditor.off("vim-mode-change", handleVimModeChange);
 				cmEditor.on("vim-mode-change", handleVimModeChange);
 			} else {
@@ -50,7 +46,6 @@ export default class VimLangmapPlugin extends Plugin {
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const handleVimModeChange = async (cm: any) => {
-			console.log("vim mode change!")
 			if (cm.mode == "normal" || cm.mode == "visual")	await changeToQwerty(this.settings, switcherPath);
 			else await changeToTyping(this.settings, switcherPath);
 		}
@@ -70,11 +65,11 @@ export default class VimLangmapPlugin extends Plugin {
 }
 
 async function changeToTyping(settings: VimLangmapPluginSettings, switcherPath: string) {
-	return pexec(`${switcherPath} ${settings.typingKeyboard} ${settings.typingOffset}`);
+	return execFile(switcherPath, [settings.typingKeyboard.toString(), settings.typingOffset.toString()]);
 }
 
 async function changeToQwerty(settings: VimLangmapPluginSettings, switcherPath: string) {
-	return pexec(`${switcherPath} ${settings.vimKeyboard} ${settings.vimOffset}`);
+	return execFile(switcherPath, [settings.vimKeyboard.toString(), settings.vimOffset.toString()]);
 }
 
 class VimLangmapPluginSettingsTab extends PluginSettingTab {
