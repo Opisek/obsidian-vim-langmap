@@ -29,11 +29,15 @@ export default class VimLangmapPlugin extends Plugin {
 	lastLayout: KeyboardLayout;
 	switcherPath: string;
 	hadFocus: boolean;
+	statusBarElement: HTMLElement;
 
 	async onload() {
 		// Load Plugin Settings
 		await this.loadSettings();
 		this.addSettingTab(new VimLangmapPluginSettingsTab(this.app, this));
+
+		// Register Status Bar Element
+		this.statusBarElement = this.addStatusBarItem();
 
 		// Find Keyboard Switcher
 		const adapter = this.app.vault.adapter;
@@ -44,14 +48,14 @@ export default class VimLangmapPlugin extends Plugin {
 		}
 
 		// Default to Typing
-		changeToTyping(this);
+		changeLayout(this, KeyboardLayout.TYPING);
 
 		// Switching Logic
 		this.app.workspace.on("active-leaf-change", async (leaf) => {
 			clearInterval(this.registeredInterval);
 			if (leaf?.view.getViewType() === "markdown") {
 				// Default vim mode is normal
-				changeToQwerty(this);
+				changeLayout(this, KeyboardLayout.QWERTY);
 
 				// Register vim mode change listener
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,23 +72,22 @@ export default class VimLangmapPlugin extends Plugin {
 					this.hadFocus = hasFocus;
 
 					if (hasFocus) {
-						if (this.lastLayout == KeyboardLayout.QWERTY) changeToQwerty(this);
-						else changeToTyping(this);
+						changeLayout(this, this.lastLayout);
 					} else {
 						this.lastLayout = this.currentLayout;
-						changeToTyping(this);
+						changeLayout(this, KeyboardLayout.TYPING);
 					}
 				}, 100);
 			} else {
-				changeToTyping(this);
+				changeLayout(this, KeyboardLayout.TYPING);
 			}
 		});
-		this.app.workspace.on("quit", () => { changeToTyping(this); });
+		this.app.workspace.on("quit", () => { changeLayout(this, KeyboardLayout.TYPING) });
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const handleVimModeChange = async (cm: any) => {
-			if (cm.mode == "normal" || cm.mode == "visual")	await changeToQwerty(this);
-			else await changeToTyping(this);
+			if (cm.mode == "normal" || cm.mode == "visual")	await changeLayout(this, KeyboardLayout.QWERTY);
+			else await changeLayout(this, KeyboardLayout.TYPING);
 		}
 	}
 
@@ -101,14 +104,16 @@ export default class VimLangmapPlugin extends Plugin {
 	}
 }
 
-async function changeToTyping(plugin: VimLangmapPlugin) {
-	plugin.currentLayout = KeyboardLayout.TYPING;
-	return execFile(plugin.switcherPath, [plugin.settings.typingKeyboard.toString(), plugin.settings.typingOffset.toString()]);
-}
-
-async function changeToQwerty(plugin: VimLangmapPlugin) {
-	plugin.currentLayout = KeyboardLayout.QWERTY;
-	return execFile(plugin.switcherPath, [plugin.settings.vimKeyboard.toString(), plugin.settings.vimOffset.toString()]);
+async function changeLayout(plugin: VimLangmapPlugin, layout: KeyboardLayout) {
+	plugin.currentLayout = layout;
+	plugin.statusBarElement.setText(KeyboardLayout[layout]);
+	return execFile(
+		plugin.switcherPath,
+		[
+			(layout == KeyboardLayout.QWERTY ? plugin.settings.vimKeyboard : plugin.settings.typingKeyboard).toString(),
+			(layout == KeyboardLayout.QWERTY ? plugin.settings.vimOffset : plugin.settings.typingOffset).toString(),
+		]
+	);
 }
 
 class VimLangmapPluginSettingsTab extends PluginSettingTab {
