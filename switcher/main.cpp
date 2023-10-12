@@ -43,6 +43,8 @@ int main(int argc, char** argv) {
 
 	if (offset == 0) return 0;
 
+	while (GetAsyncKeyState(VK_MENU) & 0x8000) Sleep(100);
+
 	wchar_t* executablePath;
 	if (offset > 0) {
 		executablePath = getExecutablePath(L"NextLayout.exe");
