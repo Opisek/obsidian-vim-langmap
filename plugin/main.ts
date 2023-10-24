@@ -30,6 +30,8 @@ export default class VimLangmapPlugin extends Plugin {
 	switcherPath: string;
 	hadFocus: boolean;
 	statusBarElement: HTMLElement;
+	queuedLayout: KeyboardLayout | null;
+	switchingLocked: boolean;
 
 	async onload() {
 		// Load Plugin Settings
@@ -46,6 +48,10 @@ export default class VimLangmapPlugin extends Plugin {
 			const basePath = adapter.getBasePath(); 
 			this.switcherPath = join(basePath, ".obsidian", "plugins", "obsidian-vim-langmap", "KeyboardSwitcher.exe");
 		}
+
+		// No queueing active in the beginning
+		this.queuedLayout = null;
+		this.switchingLocked = false;
 
 		// Default to Typing
 		changeLayout(this, KeyboardLayout.TYPING);
@@ -105,15 +111,32 @@ export default class VimLangmapPlugin extends Plugin {
 }
 
 async function changeLayout(plugin: VimLangmapPlugin, layout: KeyboardLayout) {
+	if (plugin.switchingLocked) {
+		plugin.queuedLayout = layout;
+	} else {
+		executeLayoutSwitch(plugin, layout);
+	}
+}
+
+async function executeLayoutSwitch(plugin: VimLangmapPlugin, layout: KeyboardLayout) {
+	plugin.queuedLayout = null;
+	plugin.switchingLocked = true;
+
 	plugin.currentLayout = layout;
 	plugin.statusBarElement.setText(KeyboardLayout[layout]);
-	return execFile(
+
+	const switcherProcess = execFile(
 		plugin.switcherPath,
 		[
 			(layout == KeyboardLayout.QWERTY ? plugin.settings.vimKeyboard : plugin.settings.typingKeyboard).toString(),
 			(layout == KeyboardLayout.QWERTY ? plugin.settings.vimOffset : plugin.settings.typingOffset).toString(),
 		]
 	);
+
+	switcherProcess.on("exit", () => {
+		plugin.switchingLocked = false;
+		if (plugin.queuedLayout != null) executeLayoutSwitch(plugin, plugin.queuedLayout);
+	});
 }
 
 class VimLangmapPluginSettingsTab extends PluginSettingTab {
