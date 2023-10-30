@@ -31,3 +31,5 @@ Unfortunately, there's no way to make keybindings like `f<character>` or `r<char
 Regarding mappings like `f<character>` and `r<character>`, I will check to see if CodeMirror provides any way of listening in on the current character buffer. If so, then we could detect these keybindings and switch the keyboard before the user presses the character that is not to be remapped.
 
 Still though, it's apparent that this project is more of a hack than a fix. If time allows, I might look into baking langmap directly into CodeMirror through a pull request. Should that be merged then Obsidian and other apps that rely on CodeMirror like Joplin will get Vim's langmap out of the box (or rather with minimal plugin writing requirement, so that feature can actually be accessed through a pseudo `.vimrc` file).
+
+Furthermore, I am currently researching the possibility to override Obsidian's key handler, as to implement a proper and configurable langmap.
