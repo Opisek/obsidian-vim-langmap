@@ -1,3 +1,6 @@
+> [!WARNING]
+> This plugin's intended function has been added to [CodeMirror Vim](https://github.com/replit/codemirror-vim) and merged into Obsidian. Simply use the [Obsidian Vimrc Support](https://github.com/esm7/obsidian-vimrc-support) plugin with the `set langmap=...` option.
+
 # Scope and Use-Case Scenarios
 
 This plugin is my personal necessity to be able to use Obsidian.
